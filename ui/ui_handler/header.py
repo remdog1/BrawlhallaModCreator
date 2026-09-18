@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QFrame
+from PySide6.QtWidgets import QWidget, QFrame, QPushButton, QStyle
 from PySide6.QtCore import QSize, QPropertyAnimation, QEasingCurve
 
 from ..ui_sources.ui_header import Ui_Header
@@ -158,6 +158,14 @@ class HeaderFrame(QWidget):
         self.ui = Ui_Header()
         self.ui.setupUi(self)
 
+        self.updateButton = QPushButton(self.ui.rightButtons)
+        self.updateButton.setFixedSize(40, 40)
+        self.updateButton.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
+        self.updateButton.setIconSize(QSize(26, 26))
+        self.updateButton.setToolTip('Check for updates')
+        self.updateButton.setAccessibleName('Check for updates')
+        self.ui.horizontalLayout_3.insertWidget(0, self.updateButton)
+
         self.headerModBuilderButton = HeaderButton(self.ui.modBuilderButton,
                                              self.ui.modBuilderLine,
                                              self.ui.modBuilderButtonFrame,
@@ -183,4 +191,3 @@ class HeaderFrame(QWidget):
         size = self.size()
         new_size = event.size()
         self.resize(QSize(new_size.width(), size.height()))
-

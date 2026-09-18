@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'modsfpcfLo.ui'
+## Form generated from reading UI file 'mods.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.1.2
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import *  # type: ignore
-from PySide6.QtGui import *  # type: ignore
-from PySide6.QtWidgets import *  # type: ignore
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLineEdit,
+    QPushButton, QScrollArea, QSizePolicy, QSplitter,
+    QVBoxLayout, QWidget)
 
 class Ui_Mods(object):
     def setupUi(self, Mods):
@@ -34,7 +40,10 @@ class Ui_Mods(object):
         self.modsList.setObjectName(u"modsList")
         self.modsList.setMinimumSize(QSize(200, 0))
         self.modsList.setMaximumSize(QSize(400, 16777215))
-        self.modsList.setStyleSheet(u"background-color: #242529;")
+        self.modsList.setStyleSheet(u"background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
+"                               stop:0 #2A2B2F, stop:1 #1F2024);\n"
+"        border-radius: 8px;\n"
+"        border: 1px solid rgba(255, 255, 255, 0.08);")
         self.modsList.setFrameShape(QFrame.StyledPanel)
         self.modsList.setFrameShadow(QFrame.Raised)
         self.verticalLayout = QVBoxLayout(self.modsList)
@@ -45,8 +54,11 @@ class Ui_Mods(object):
         self.searchFrame.setObjectName(u"searchFrame")
         self.searchFrame.setMinimumSize(QSize(0, 30))
         self.searchFrame.setMaximumSize(QSize(16777215, 30))
-        self.searchFrame.setCursor(QCursor(Qt.IBeamCursor))
-        self.searchFrame.setStyleSheet(u"background-color: #1D1E20;")
+        self.searchFrame.setCursor(QCursor(Qt.CursorShape.IBeamCursor))
+        self.searchFrame.setStyleSheet(u"background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
+"                               stop:0 #25262A, stop:1 #1A1B1F);\n"
+"        border-radius: 6px;\n"
+"        border: 1px solid rgba(255, 255, 255, 0.06);")
         self.searchFrame.setFrameShape(QFrame.StyledPanel)
         self.searchFrame.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_2 = QHBoxLayout(self.searchFrame)
@@ -57,7 +69,7 @@ class Ui_Mods(object):
         self.searchButton.setObjectName(u"searchButton")
         self.searchButton.setMinimumSize(QSize(25, 0))
         icon = QIcon()
-        icon.addFile(u":/icons/resources/icons/Search.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icons/resources/icons/Search.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.searchButton.setIcon(icon)
         self.searchButton.setIconSize(QSize(14, 14))
 
@@ -70,7 +82,13 @@ class Ui_Mods(object):
         font = QFont()
         font.setPointSize(11)
         self.searchArea.setFont(font)
-        self.searchArea.setStyleSheet(u"color: #eeeeee;")
+        self.searchArea.setStyleSheet(u"background-color: transparent; \n"
+"        color: #E8E9EA; \n"
+"        border: none; \n"
+"        font-family: \"Segoe UI\", \"Roboto\", sans-serif;\n"
+"        font-size: 13px;\n"
+"        font-weight: 400;\n"
+"        padding: 6px 12px;")
 
         self.horizontalLayout_2.addWidget(self.searchArea)
 
@@ -131,7 +149,8 @@ class Ui_Mods(object):
 
         self.createModFrame = QFrame(self.modsList)
         self.createModFrame.setObjectName(u"createModFrame")
-        self.createModFrame.setMaximumSize(QSize(16777215, 0))
+        self.createModFrame.setMinimumSize(QSize(0, 100))
+        self.createModFrame.setMaximumSize(QSize(16777215, 100))
         self.createModFrame.setStyleSheet(u"QPushButton{\n"
 "color: #eeeeee;\n"
 "background-color: #43C15F;\n"
@@ -139,9 +158,9 @@ class Ui_Mods(object):
         self.createModFrame.setFrameShape(QFrame.StyledPanel)
         self.createModFrame.setFrameShadow(QFrame.Raised)
         self.verticalLayout_3 = QVBoxLayout(self.createModFrame)
-        self.verticalLayout_3.setSpacing(0)
+        self.verticalLayout_3.setSpacing(5)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_3.setContentsMargins(5, 5, 5, 5)
         self.createMod = QPushButton(self.createModFrame)
         self.createMod.setObjectName(u"createMod")
         self.createMod.setMinimumSize(QSize(0, 30))
@@ -149,9 +168,25 @@ class Ui_Mods(object):
         font1.setFamilies([u"Roboto Medium"])
         font1.setPointSize(10)
         self.createMod.setFont(font1)
-        self.createMod.setCursor(QCursor(Qt.PointingHandCursor))
+        self.createMod.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         self.verticalLayout_3.addWidget(self.createMod)
+
+        self.createFromTemplate = QPushButton(self.createModFrame)
+        self.createFromTemplate.setObjectName(u"createFromTemplate")
+        self.createFromTemplate.setMinimumSize(QSize(0, 30))
+        self.createFromTemplate.setFont(font1)
+        self.createFromTemplate.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.verticalLayout_3.addWidget(self.createFromTemplate)
+
+        self.batchOperations = QPushButton(self.createModFrame)
+        self.batchOperations.setObjectName(u"batchOperations")
+        self.batchOperations.setMinimumSize(QSize(0, 30))
+        self.batchOperations.setFont(font1)
+        self.batchOperations.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+
+        self.verticalLayout_3.addWidget(self.batchOperations)
 
 
         self.verticalLayout.addWidget(self.createModFrame)
@@ -179,16 +214,16 @@ class Ui_Mods(object):
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.deleteAllMods = QPushButton(self.leftButtons)
         self.deleteAllMods.setObjectName(u"deleteAllMods")
-        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.deleteAllMods.sizePolicy().hasHeightForWidth())
         self.deleteAllMods.setSizePolicy(sizePolicy)
         self.deleteAllMods.setMinimumSize(QSize(30, 30))
-        self.deleteAllMods.setCursor(QCursor(Qt.PointingHandCursor))
+        self.deleteAllMods.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.deleteAllMods.setStyleSheet(u"")
         icon1 = QIcon()
-        icon1.addFile(u":/icons/resources/icons/UninstallAllMods.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u":/icons/resources/icons/UninstallAllMods.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.deleteAllMods.setIcon(icon1)
 
         self.horizontalLayout_4.addWidget(self.deleteAllMods)
@@ -196,9 +231,9 @@ class Ui_Mods(object):
         self.reloadModsList = QPushButton(self.leftButtons)
         self.reloadModsList.setObjectName(u"reloadModsList")
         self.reloadModsList.setMinimumSize(QSize(30, 30))
-        self.reloadModsList.setCursor(QCursor(Qt.PointingHandCursor))
+        self.reloadModsList.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         icon2 = QIcon()
-        icon2.addFile(u":/icons/resources/icons/UpdateModsTable.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon2.addFile(u":/icons/resources/icons/UpdateModsTable.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.reloadModsList.setIcon(icon2)
 
         self.horizontalLayout_4.addWidget(self.reloadModsList)
@@ -206,9 +241,9 @@ class Ui_Mods(object):
         self.installAllMods = QPushButton(self.leftButtons)
         self.installAllMods.setObjectName(u"installAllMods")
         self.installAllMods.setMinimumSize(QSize(30, 30))
-        self.installAllMods.setCursor(QCursor(Qt.PointingHandCursor))
+        self.installAllMods.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         icon3 = QIcon()
-        icon3.addFile(u":/icons/resources/icons/InstallAllMods.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon3.addFile(u":/icons/resources/icons/InstallAllMods.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.installAllMods.setIcon(icon3)
 
         self.horizontalLayout_4.addWidget(self.installAllMods)
@@ -231,9 +266,9 @@ class Ui_Mods(object):
         sizePolicy.setHeightForWidth(self.modsSortButton.sizePolicy().hasHeightForWidth())
         self.modsSortButton.setSizePolicy(sizePolicy)
         self.modsSortButton.setMinimumSize(QSize(30, 30))
-        self.modsSortButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.modsSortButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         icon4 = QIcon()
-        icon4.addFile(u":/icons/resources/icons/SortModsList.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon4.addFile(u":/icons/resources/icons/SortModsList.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.modsSortButton.setIcon(icon4)
 
         self.horizontalLayout_5.addWidget(self.modsSortButton)
@@ -241,9 +276,9 @@ class Ui_Mods(object):
         self.updateAllMods = QPushButton(self.rightButtons)
         self.updateAllMods.setObjectName(u"updateAllMods")
         self.updateAllMods.setMinimumSize(QSize(30, 30))
-        self.updateAllMods.setCursor(QCursor(Qt.PointingHandCursor))
+        self.updateAllMods.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         icon5 = QIcon()
-        icon5.addFile(u":/icons/resources/icons/UpdateAllMods.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon5.addFile(u":/icons/resources/icons/UpdateAllMods.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.updateAllMods.setIcon(icon5)
 
         self.horizontalLayout_5.addWidget(self.updateAllMods)
@@ -251,9 +286,9 @@ class Ui_Mods(object):
         self.openModsFolderButton = QPushButton(self.rightButtons)
         self.openModsFolderButton.setObjectName(u"openModsFolderButton")
         self.openModsFolderButton.setMinimumSize(QSize(30, 30))
-        self.openModsFolderButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.openModsFolderButton.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         icon6 = QIcon()
-        icon6.addFile(u":/icons/resources/icons/OpenModsFolder.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon6.addFile(u":/icons/resources/icons/OpenModsFolder.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.openModsFolderButton.setIcon(icon6)
 
         self.horizontalLayout_5.addWidget(self.openModsFolderButton)
@@ -267,7 +302,7 @@ class Ui_Mods(object):
         self.splitter.addWidget(self.modsList)
         self.modBody = QFrame(self.splitter)
         self.modBody.setObjectName(u"modBody")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.modBody.sizePolicy().hasHeightForWidth())
@@ -352,6 +387,8 @@ class Ui_Mods(object):
         self.searchArea.setText("")
         self.searchArea.setPlaceholderText(QCoreApplication.translate("Mods", u"Search", None))
         self.createMod.setText(QCoreApplication.translate("Mods", u"Create mod", None))
+        self.createFromTemplate.setText(QCoreApplication.translate("Mods", u"Create from Template", None))
+        self.batchOperations.setText(QCoreApplication.translate("Mods", u"Batch Operations", None))
 #if QT_CONFIG(tooltip)
         self.deleteAllMods.setToolTip(QCoreApplication.translate("Mods", u"<html><head/><body><p><span style=\" color:#eeeeee;\">Delete all mods</span></p></body></html>", None))
 #endif // QT_CONFIG(tooltip)

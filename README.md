@@ -1,4 +1,8 @@
-# Brawlhalla ModCreator ![Python 3.6](https://img.shields.io/badge/python-3.8-blue.svg)
+# Brawlhalla ModCreator ![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)
+
+This maintained version includes portable Java support, safer mod packaging,
+folder-aware asset matching, and an optional GitHub updater. See
+[Source and Build Instructions](SOURCE_BUILD.md) and [Updating](UPDATING.md).
 
 **ModCreator** - tool for creating mods for Brawlhalla  
 **[ModLoader](https://github.com/Farbigoz/BhModloader)** - tool for installing mods in Brawlhalla
@@ -6,8 +10,8 @@
 ![window](https://github.com/Farbigoz/BhModCreator/blob/main/wiki/readme/window.png)
 
 ## Download application
-For downloading the app, see [**latest release**](https://github.com/Farbigoz/BhModCreator/releases/latest). 
-Older versions and pre-releases builds are available on [**releases section**](https://github.com/Farbigoz/BhModCreator/releases)
+Published builds and prereleases are available in the [**releases section**](https://github.com/remdog1/BrawlhallaModCreator/releases).
+Draft releases are for testing and are not offered by the updater.
 
 ## Wiki
 * **[Formatting description text](https://github.com/Farbigoz/BhModCreator/wiki/Text-formatting)**

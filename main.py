@@ -4,6 +4,10 @@ import threading
 import webbrowser
 import multiprocessing
 
+if __name__ == '__main__' and not getattr(sys, 'frozen', False):
+    from source_bootstrap import ensure_source_python
+    ensure_source_python()
+
 from typing import List
 
 try:
@@ -16,6 +20,8 @@ except ImportError as e:
 
     if e.msg == "Java not found!":
         JAVA_FOUND = False
+    else:
+        raise
 
 from PySide6.QtGui import QIcon, QFontDatabase
 from PySide6.QtCore import QTimer, QSize
@@ -32,12 +38,24 @@ from ui.ui_handler.inputdialog import InputDialog
 
 from ui.utils.layout import AddToFrame, ClearFrame
 from ui.utils.textformater import TextFormatter
-from ui.utils.version import GetLatest, GITHUB, REPO, VERSION, GIT_VERSION, PRERELEASE, GAMEBANANA
+from ui.utils.version import GITHUB, REPO, GIT_VERSION, GAMEBANANA
+from app_version import VERSION, PRERELEASE
+from ui.ui_handler.updater import CreatorUpdater
 from ui.utils.mainthread import QExecMainThread
 
 SUPPORT_URL = "https://www.patreon.com/bhmodloader"
 
-PROGRAM_NAME = "Brawlhalla ModCreator"
+PROGRAM_NAME = "Brawlhalla Mod Creator 2025 Beta"
+
+
+def AppResourcePath(*parts):
+    basePath = getattr(sys, "_MEIPASS", os.getcwd())
+    return os.path.join(basePath, *parts)
+
+
+def AddApplicationFont(fontDb, resourcePath, *fileParts):
+    if fontDb.addApplicationFont(resourcePath) == -1:
+        fontDb.addApplicationFont(AppResourcePath(*fileParts))
 
 
 def InitWindowSetText(text):
@@ -61,8 +79,10 @@ def InitWindowClose():
 
 def TerminateApp():
     for proc in multiprocessing.active_children():
-        proc.kill()
-    os.kill(multiprocessing.current_process().pid, 0)
+        try:
+            proc.kill()
+        except (OSError, RuntimeError):
+            pass
     sys.exit(0)
 
 
@@ -108,7 +128,9 @@ class ModCreator(QMainWindow):
 
         self.setMinimumSize(QSize(850, 550))
 
-        threading.Thread(target=self.checkNewVersion).start()
+        self.updater = CreatorUpdater(self)
+        self.header.updateButton.clicked.connect(lambda: self.updater.check(True))
+        QTimer.singleShot(1500, self.updater.startup)
 
         self.controller = None
 
@@ -312,6 +334,9 @@ class ModCreator(QMainWindow):
                            NotificationType.UninstallingModSwfOriginalElementNotFound,  # Uninstaller
                            NotificationType.UninstallingModSwfElementNotFound]:
                 self.errors.append(notification)
+                if ntype == NotificationType.CompileModSourcesSaveError:
+                    self.progressDialog.hide()
+                    self.showErrorNotifications()
 
         elif cmd == Environment.GetModsSourcesData:
             for modSourcesData in data[1]:
@@ -321,6 +346,7 @@ class ModCreator(QMainWindow):
                                  version=modSourcesData.get("version", ""),
                                  description=modSourcesData.get("description", ""),
                                  tags=modSourcesData.get("tags", []),
+                                 features=modSourcesData.get("features", []),
                                  previewsPaths=modSourcesData.get("previewsPaths", []),
                                  hash=modSourcesData.get("hash", ""),
                                  platform=modSourcesData.get("platform", ""),
@@ -387,6 +413,7 @@ class ModCreator(QMainWindow):
                                  version=modSourcesData.get("version", ""),
                                  description=modSourcesData.get("description", ""),
                                  tags=modSourcesData.get("tags", []),
+                                 features=modSourcesData.get("features", []),
                                  previewsPaths=modSourcesData.get("previewsPaths", []),
                                  hash=modSourcesData.get("hash", ""),
                                  platform=modSourcesData.get("platform", ""),
@@ -397,6 +424,20 @@ class ModCreator(QMainWindow):
                                  modSourcesPath=modSourcesData.get("modSourcesPath", ""))
 
                 self.mods.currentGameVersion = modSourcesData.get("currentGameVersion", "")
+                # Auto-fill the created entry name from folder name if empty
+                try:
+                    if not modSourcesData.get("name"):
+                        folder_path = modSourcesData.get("modSourcesPath", "")
+                        default_name = os.path.basename(folder_path) or "New Mod"
+                        mod_hash = modSourcesData.get("hash", "")
+                        if mod_hash in self.mods.modsSources:
+                            self.mods.modsSources[mod_hash].name = default_name
+                        if hasattr(self, 'controller') and self.controller:
+                            self.controller.setModName(mod_hash, default_name)
+                            self.controller.saveModSource(mod_hash)
+                        self.mods.updateAll()
+                except Exception:
+                    pass
             else:
                 self.inputDialog.clearInput()
                 self.inputDialog.setTitle("Create mod...")
@@ -431,7 +472,8 @@ class ModCreator(QMainWindow):
                     string = f"Unknown file '{notif.args[1]}'"
 
                 elif ntype == NotificationType.CompileModSourcesSaveError:
-                    string = "Error save .bmod"
+                    detail = notif.args[1] if len(notif.args) > 1 else 'See the creator log.'
+                    string = f"Mod build failed: {detail}"
 
                 # Loader
                 elif ntype == NotificationType.LoadingModIsEmpty:
@@ -504,8 +546,8 @@ class ModCreator(QMainWindow):
 
     def copyToClipboard(self, text):
         cb = QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard)
-        cb.setText(text, mode=cb.Clipboard)
+        cb.clear()
+        cb.setText(text)
 
     def setLoadingScreen(self):
         ClearFrame(self.ui.mainFrame)
@@ -540,15 +582,20 @@ class ModCreator(QMainWindow):
         if self.mods.selectedModButton is not None:
             modSources = self.mods.selectedModButton.modClass
 
+            print(f"DEBUG: saveModSource called for {modSources.name}")
+            print(f"DEBUG: Features to save: {modSources.features}")
+
             self.controller.setModName(modSources.hash, modSources.name)
             self.controller.setModAuthor(modSources.hash, modSources.author)
             self.controller.setModGameVersion(modSources.hash, modSources.gameVersion)
             self.controller.setModVersion(modSources.hash, modSources.version)
             self.controller.setModTags(modSources.hash, modSources.tags)
+            self.controller.setModFeatures(modSources.hash, modSources.features)
             self.controller.setModDescription(modSources.hash, modSources.description)
             self.controller.setModPreviews(modSources.hash, modSources.previewsPaths)
 
             self.controller.saveModSource(modSources.hash)
+            print(f"DEBUG: saveModSource completed for {modSources.name}")
 
     def installMod(self):
         if self.mods.selectedModButton is not None:
@@ -638,25 +685,24 @@ class ModCreator(QMainWindow):
         self.buttonsDialog.show()
 
     def checkNewVersion(self):
-        latest = GetLatest()
-
-        if latest is not None:
-            newVersion, fileUrl, version, body = latest
-            self.newVersion(newVersion, fileUrl, version, body)
+        self.updater.check(False)
 
 
 def RunApp():
     app = QApplication(sys.argv)
     font_db = QFontDatabase()
-    font_db.addApplicationFont(":/fonts/resources/fonts/Exo 2/Exo2-SemiBold.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Black.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-BlackItalic.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Bold.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-BoldItalic.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Italic.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Medium.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-MediumItalic.ttf")
-    font_db.addApplicationFont(":/fonts/resources/fonts/Roboto/Roboto-Regular.ttf")
+    AddApplicationFont(font_db, ":/fonts/resources/fonts/Exo 2/Exo2-SemiBold.ttf",
+                       "ui", "ui_sources", "resources", "fonts", "Exo 2", "Exo2-SemiBold.ttf")
+    for fontName in ("Roboto-Black.ttf",
+                     "Roboto-BlackItalic.ttf",
+                     "Roboto-Bold.ttf",
+                     "Roboto-BoldItalic.ttf",
+                     "Roboto-Italic.ttf",
+                     "Roboto-Medium.ttf",
+                     "Roboto-MediumItalic.ttf",
+                     "Roboto-Regular.ttf"):
+        AddApplicationFont(font_db, f":/fonts/resources/fonts/Roboto/{fontName}",
+                           "ui", "ui_sources", "resources", "fonts", "Roboto", fontName)
     window = ModCreator()
     window.show()
     sys.exit(app.exec())

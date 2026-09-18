@@ -14,42 +14,163 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget{border: none;}
-QWidget#ModCreator{background-color: #303136;}
-QLabel{color: #eeeeee;}
-QLineEdit{background-color: #00000000; color: #eeeeee;font: &quot;Roboto Medium&quot;;}
-QTextBrowser{background-color: #00000000; color: #eeeeee;font: &quot;Roboto Medium&quot;;}
-QTextBrowser:focus{background-color: #555F5F5F;}
-QLineEdit:focus{background-color: #555F5F5F;}
-QScrollBar:vertical {         
+   <string notr="true">/* Modern Dark Theme */
+QWidget {
     border: none;
-    background: #2B2C32;
-    width: 7px;
-    margin: 0 0 0 0;
-    border-radius: 0px;
+    font-family: &quot;Segoe UI&quot;, &quot;Roboto&quot;, sans-serif;
 }
+
+QWidget#ModCreator {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 #2D2E32, stop:1 #1E1F23);
+    border-radius: 8px;
+}
+
+/* Labels */
+QLabel {
+    color: #E8E9EA;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 2px 0px;
+}
+
+QLabel[class=&quot;title&quot;] {
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+QLabel[class=&quot;subtitle&quot;] {
+    color: #B0B1B3;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+/* Input Fields */
+QLineEdit {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #E8E9EA;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 400;
+    selection-background-color: #0078D4;
+}
+
+QLineEdit:focus {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid #0078D4;
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+QLineEdit:hover {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Text Browser */
+QTextBrowser {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #E8E9EA;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 400;
+    selection-background-color: #0078D4;
+}
+
+QTextBrowser:focus {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid #0078D4;
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+/* Frames */
+QFrame {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    margin: 4px 0px;
+}
+
+QFrame[class=&quot;section&quot;] {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0px;
+}
+
+/* Scrollbars */
+QScrollBar:vertical {
+    background: rgba(255, 255, 255, 0.05);
+    width: 8px;
+    border-radius: 4px;
+    margin: 0px;
+}
+
 QScrollBar::handle:vertical {
-    background-color: #616161;
-    min-height: 30px;
-    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    min-height: 20px;
+    margin: 2px;
 }
-QScrollBar::handle:vertical:hover{
-    background-color: #A1A1A1;
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
+
 QScrollBar::handle:vertical:pressed {
-    background-color: #717171;
+    background: rgba(255, 255, 255, 0.4);
 }
-QScrollBar::sub-line:vertical {
-	border: none;
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
 }
-QScrollBar::add-line:vertical {
-	border: none;
-}
-QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
-	background: none;
-}
+
 QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-	background: none;
+    background: none;
+}
+
+/* Buttons */
+QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 #0078D4, stop:1 #106EBE);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 20px;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 #106EBE, stop:1 #005A9E);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 #005A9E, stop:1 #004578);
+}
+
+QPushButton:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Tooltips */
+QToolTip {
+    background-color: #2D2E32;
+    color: #E8E9EA;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -402,7 +523,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                </font>
               </property>
               <property name="placeholderText">
-               <string>Source:</string>
+               <string>Features:</string>
               </property>
              </widget>
             </item>

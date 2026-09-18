@@ -4,6 +4,16 @@ import traceback
 import threading
 import multiprocessing
 
+# Handle frozen worker arguments before importing the UI or starting Java.
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
+    if '--apply-update' in sys.argv:
+        from update_helper import apply_update
+        raise SystemExit(apply_update(sys.argv[sys.argv.index('--apply-update') + 1]))
+    if "--runtime-check" in sys.argv:
+        from runtime_check import run_check
+        raise SystemExit(run_check(sys.argv[sys.argv.index("--runtime-check") + 1]))
+
 from ui.utils.systemdialog import Error
 
 

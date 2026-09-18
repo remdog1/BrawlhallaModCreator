@@ -1,11 +1,15 @@
 from typing import List, Dict
+import os
+import shutil
 
-from PySide6.QtWidgets import QWidget, QFileDialog, QFrame, QVBoxLayout, QApplication
-from PySide6.QtGui import QPaintEvent, QPixmap, QColor
-from PySide6.QtCore import QEvent, Qt, QTimer, QSize
+from PySide6.QtWidgets import QWidget, QFileDialog, QFrame, QVBoxLayout, QApplication, QMessageBox
+from PySide6.QtGui import QPaintEvent, QPixmap, QColor, QDragEnterEvent, QDropEvent
+from PySide6.QtCore import QEvent, Qt, QTimer, QSize, QMimeData
 
 from .modclass import ModClass
 from .modbutton import ModButton
+from .template_dialog import TemplateDialog
+from .batch_operations import BatchOperationsDialog
 
 from ..ui_sources.ui_mods import Ui_Mods
 from ..ui_sources.ui_mod_build_actions import Ui_ModsBuildActions
@@ -90,7 +94,7 @@ class SetPreview(QWidget):
 
     def clearPreview(self):
         self.preview = None
-        self.ui.preview.setPixmap(None)
+        self.ui.preview.setPixmap(QPixmap())
         self.updateButtons()
         self.resizeEvent(None)
 
@@ -185,7 +189,14 @@ class Mods(QWidget):
         self.body.gameVersion.installEventFilter(self)
         self.body.version.installEventFilter(self)
         self.body.tags.installEventFilter(self)
+        self.body.source.textChanged.connect(self.featuresChanged)
+        self.body.source.installEventFilter(self)
         self.ui.modBody.installEventFilter(self)
+        
+        # Enable drag and drop for the mod body
+        self.ui.modBody.setAcceptDrops(True)
+        self.ui.modBody.dragEnterEvent = self.dragEnterEvent
+        self.ui.modBody.dropEvent = self.dropEvent
 
         modsListFrame = QFrame()
         layout = QVBoxLayout(modsListFrame)
@@ -215,6 +226,16 @@ class Mods(QWidget):
         self.ui.createMod.clicked.connect(createMethod)
         self.ui.reloadModsList.clicked.connect(reloadMethod)
         self.ui.openModsFolderButton.clicked.connect(openFolderMethod)
+        # expose save for drops/edits that adjust features silently
+        self.saveMethod = saveMethod
+        
+        # Add template button if it exists
+        if hasattr(self.ui, 'createFromTemplate'):
+            self.ui.createFromTemplate.clicked.connect(self.show_template_dialog)
+        
+        # Add batch operations button if it exists
+        if hasattr(self.ui, 'batchOperations'):
+            self.ui.batchOperations.clicked.connect(self.show_batch_operations)
 
         self.ui.searchArea.textChanged.connect(self.searchEvent)
 
@@ -260,6 +281,13 @@ class Mods(QWidget):
                 elif event.type() == QEvent.Type.FocusOut:
                     self.updateTags()
 
+            elif qobject == self.body.source:
+                if event.type() == QEvent.Type.FocusIn:
+                    features = getattr(self.selectedModButton.modClass, 'features', [])
+                    self.body.source.setText(", ".join(features) or " ")
+                elif event.type() == QEvent.Type.FocusOut:
+                    self.updateFeatures()
+
             elif qobject == self.body.description:
                 if event.type() == QEvent.Type.FocusIn:
                     self.body.description.setPlainText(self.selectedModButton.modClass.description)
@@ -273,6 +301,9 @@ class Mods(QWidget):
 
     def updateButtons(self):
         QApplication.processEvents()
+
+        if self.selectedModButton is None:
+            return
 
         layout = self.actions.topButtons.layout()
         modSource = self.selectedModButton.modClass
@@ -367,7 +398,39 @@ class Mods(QWidget):
         self.saveTimer.start(500)
 
         if self.selectedModButton is not None:
-            self.selectedModButton.modClass.tags = text.strip().split(", ")
+            # Handle empty text properly
+            if text.strip():
+                self.selectedModButton.modClass.tags = [t.strip() for t in text.strip().split(",") if t.strip()]
+            else:
+                self.selectedModButton.modClass.tags = []
+
+    def featuresChanged(self, text):
+        print(f"DEBUG: featuresChanged called with: '{text}'")
+        self.saveTimer.stop()
+        self.saveTimer.start(500)
+
+        if self.selectedModButton is not None:
+            # Remove placeholder text before parsing, just like tags
+            placeholder = self.body.source.placeholderText()
+            if text.startswith(placeholder):
+                text = text[len(placeholder):].strip()
+            
+            # Handle empty text properly like tags
+            if text.strip():
+                features = [f.strip() for f in text.strip().split(",") if f.strip()]
+                print(f"DEBUG: Setting features to: {features}")
+                self.selectedModButton.modClass.features = features
+            else:
+                print("DEBUG: Setting features to empty list")
+                self.selectedModButton.modClass.features = []
+            self.selectedModButton.updateData()
+        else:
+            print("DEBUG: No selected mod button")
+            # Persist empty state too
+            try:
+                self.saveMethod()
+            except Exception:
+                pass
 
     def descriptionChanged(self):
         self.saveTimer.stop()
@@ -441,6 +504,15 @@ class Mods(QWidget):
         self.body.tags.setText(f"{self.body.tags.placeholderText()} {', '.join(self.selectedModButton.modClass.tags)}")
         self.body.tags.textChanged.connect(self.tagsChanged)
 
+    def updateFeatures(self):
+        try:
+            self.body.source.textChanged.disconnect()
+        except RuntimeError:
+            pass
+        features = getattr(self.selectedModButton.modClass, 'features', [])
+        self.body.source.setText(f"{self.body.source.placeholderText()} {', '.join(features)}")
+        self.body.source.textChanged.connect(self.featuresChanged)
+
     def updateModSourcesPath(self):
         self.body.modSourcesPath.setText(f"{self.body.modSourcesPath.placeholderText()} "
                                          f"{self.selectedModButton.modClass.modSourcesPath}")
@@ -470,6 +542,7 @@ class Mods(QWidget):
             self.updateGameVersion()
             self.updateVersion()
             self.updateTags()
+            self.updateFeatures()
             self.updateDescription()
             self.updatePreviews()
             self.updateModSourcesPath()
@@ -504,6 +577,7 @@ class Mods(QWidget):
                version: str,
                description: str,
                tags: List[str],
+               features: List[str],
                previewsPaths: List[str],
                hash: str,
                platform: str,
@@ -525,6 +599,12 @@ class Mods(QWidget):
                               currentVersion=currentVersion,
                               modFileExist=False,
                               modSourcesPath=modSourcesPath)
+
+        # Ensure features from controller are reflected in UI model
+        try:
+            modSources.features = features or []
+        except Exception:
+            modSources.features = []
 
         self.modsSources[hash] = modSources
         self.addModButton(modSources)
@@ -552,5 +632,225 @@ class Mods(QWidget):
         for modSource in self.modsSources.values():
             del modSource
         self.modsSources.clear()
+
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        """Handle drag enter events for file drops"""
+        if event.mimeData().hasUrls():
+            # Check if any of the dropped files are valid mod files
+            urls = event.mimeData().urls()
+            valid_files = []
+            
+            for url in urls:
+                file_path = url.toLocalFile()
+                if os.path.isfile(file_path):
+                    # Check for valid mod file extensions
+                    if (file_path.lower().endswith(('.swf', '.bnk', '.wem', '.txt', '.png', '.jpg', '.jpeg')) or
+                        file_path.lower().endswith('.bmod')):
+                        valid_files.append(file_path)
+            
+            if valid_files:
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event: QDropEvent):
+        """Handle drop events for file drops"""
+        if not self.selectedModButton:
+            QMessageBox.warning(self, "No Mod Selected", 
+                              "Please select a mod first before dropping files.")
+            return
+            
+        urls = event.mimeData().urls()
+        mod_path = self.selectedModButton.modClass.modSourcesPath
+        
+        if not os.path.exists(mod_path):
+            QMessageBox.warning(self, "Mod Path Not Found", 
+                              f"Mod path not found: {mod_path}")
+            return
+        
+        copied_files = []
+        failed_files = []
+        
+        for url in urls:
+            file_path = url.toLocalFile()
+            if os.path.isfile(file_path):
+                try:
+                    # Determine destination based on file type
+                    filename = os.path.basename(file_path)
+                    dest_path = self._get_destination_path(mod_path, filename, file_path)
+                    
+                    # Create destination directory if it doesn't exist
+                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                    
+                    # Copy the file
+                    shutil.copy2(file_path, dest_path)
+                    copied_files.append(filename)
+                    
+                except Exception as e:
+                    failed_files.append(f"{filename}: {str(e)}")
+        
+        # Show results
+        if copied_files:
+            message = f"Successfully copied {len(copied_files)} file(s):\n" + "\n".join(copied_files)
+            if failed_files:
+                message += f"\n\nFailed to copy {len(failed_files)} file(s):\n" + "\n".join(failed_files)
+            
+            QMessageBox.information(self, "Files Copied", message)
+            
+            # Refresh the mod to show new files
+            if hasattr(self, 'reloadMethod'):
+                self.reloadMethod()
+        else:
+            QMessageBox.warning(self, "No Files Copied", 
+                              "No valid files were copied. Please check file types and permissions.")
+        
+        event.acceptProposedAction()
+
+    def _get_destination_path(self, mod_path: str, filename: str, source_path: str) -> str:
+        """Determine the destination path for a dropped file based on its type"""
+        filename_lower = filename.lower()
+        
+        # SWF files go to root
+        if filename_lower.endswith('.swf'):
+            return os.path.join(mod_path, filename)
+        
+        # BNK files go to Sound folder
+        elif filename_lower.endswith('.bnk'):
+            return os.path.join(mod_path, "Sound", filename)
+        
+        # WEM files go to Sound folder (in appropriate BNK subfolder)
+        elif filename_lower.endswith('.wem'):
+            # Try to determine BNK folder based on filename patterns
+            if 'announcer' in filename_lower or 'vox' in filename_lower:
+                return os.path.join(mod_path, "Sound", "VOX_Announcer.bnk", filename)
+            elif 'spc' in filename_lower or 'character' in filename_lower:
+                return os.path.join(mod_path, "Sound", "SPC_Character.bnk", filename)
+            else:
+                return os.path.join(mod_path, "Sound", filename)
+        
+        # Language files go to languages folder
+        elif filename_lower.endswith('.txt') and 'language' in filename_lower:
+            return os.path.join(mod_path, "languages", filename)
+        
+        # Image files go to _previews folder
+        elif filename_lower.endswith(('.png', '.jpg', '.jpeg')):
+            return os.path.join(mod_path, "_previews", filename)
+        
+        # Default: put in root
+        else:
+            return os.path.join(mod_path, filename)
+
+    def show_template_dialog(self):
+        """Show the template selection dialog"""
+        from core.core.worker.variables import MODS_SOURCES_PATH
+        
+        if not MODS_SOURCES_PATH:
+            QMessageBox.warning(self, "No Mods Sources Path", 
+                              "Mods sources path is not configured.")
+            return
+        
+        dialog = TemplateDialog(self, MODS_SOURCES_PATH[0])
+        dialog.mod_created.connect(self.on_template_mod_created)
+        
+        if dialog.exec() == QDialog.Accepted:
+            # Dialog was accepted, mod creation handled by signal
+            pass
+    
+    def on_template_mod_created(self, template_id: str, mod_path: str):
+        """Handle mod creation from template"""
+        # Reload the mods list to show the new mod
+        if hasattr(self, 'reloadMethod'):
+            self.reloadMethod()
+        
+        # Find and select the newly created mod
+        mod_name = os.path.basename(mod_path)
+        for mod_button in self.modsButtons:
+            if mod_button.modClass.folderName == mod_name:
+                self.selectMod(mod_button)
+                break
+
+    def show_batch_operations(self):
+        """Show the batch operations dialog"""
+        # Prepare mod data for batch operations
+        mods_data = []
+        for mod_button in self.modsButtons:
+            mod_data = {
+                'name': mod_button.modClass.name,
+                'path': mod_button.modClass.modSourcesPath,
+                'mod_button': mod_button
+            }
+            mods_data.append(mod_data)
+        
+        if not mods_data:
+            QMessageBox.information(self, "No Mods", "No mods available for batch operations.")
+            return
+        
+        dialog = BatchOperationsDialog(self, mods_data)
+        
+        # Set up operation functions
+        dialog.set_operation_functions(
+            build_func=self._batch_build_mod,
+            install_func=self._batch_install_mod,
+            uninstall_func=self._batch_uninstall_mod,
+            delete_func=self._batch_delete_mod
+        )
+        
+        dialog.operations_completed.connect(self.on_batch_operations_completed)
+        
+        if dialog.exec() == QDialog.Accepted:
+            # Operations completed successfully
+            pass
+    
+    def _batch_build_mod(self, mod_data: Dict) -> bool:
+        """Build a single mod (for batch operations)"""
+        try:
+            mod_button = mod_data['mod_button']
+            if hasattr(self, 'buildMethod'):
+                self.buildMethod(mod_button)
+            return True
+        except Exception as e:
+            print(f"Error building mod {mod_data['name']}: {e}")
+            return False
+    
+    def _batch_install_mod(self, mod_data: Dict) -> bool:
+        """Install a single mod (for batch operations)"""
+        try:
+            mod_button = mod_data['mod_button']
+            if hasattr(self, 'installMethod'):
+                self.installMethod(mod_button)
+            return True
+        except Exception as e:
+            print(f"Error installing mod {mod_data['name']}: {e}")
+            return False
+    
+    def _batch_uninstall_mod(self, mod_data: Dict) -> bool:
+        """Uninstall a single mod (for batch operations)"""
+        try:
+            mod_button = mod_data['mod_button']
+            if hasattr(self, 'uninstallMethod'):
+                self.uninstallMethod(mod_button)
+            return True
+        except Exception as e:
+            print(f"Error uninstalling mod {mod_data['name']}: {e}")
+            return False
+    
+    def _batch_delete_mod(self, mod_data: Dict) -> bool:
+        """Delete a single mod (for batch operations)"""
+        try:
+            mod_button = mod_data['mod_button']
+            if hasattr(self, 'deleteMethod'):
+                self.deleteMethod(mod_button)
+            return True
+        except Exception as e:
+            print(f"Error deleting mod {mod_data['name']}: {e}")
+            return False
+    
+    def on_batch_operations_completed(self):
+        """Handle completion of batch operations"""
+        # Reload the mods list to reflect changes
+        if hasattr(self, 'reloadMethod'):
+            self.reloadMethod()
 
         self.saveTimer.stop()

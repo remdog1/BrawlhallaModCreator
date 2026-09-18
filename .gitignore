@@ -1,9 +1,24 @@
 .idea
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+*.tmp
+*.part
+.env
+.env.*
+runtime/
+MODLOADER_CACHE_PATH/
+TestScriptMod/
+.creator-update-*/
+*.previous-*
 venv
 build
 dist
-Mods
-Mods Sources
+/Mods/*
+!/Mods/.gitkeep
+/Mods Sources/*
+!/Mods Sources/.gitkeep
 
 ui/ui_handler/__pycache__
 ui/ui_sources/__pycache__

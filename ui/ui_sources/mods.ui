@@ -66,7 +66,10 @@
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: #242529;</string>
+       <string notr="true">background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 #2A2B2F, stop:1 #1F2024);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
@@ -108,7 +111,10 @@
           <cursorShape>IBeamCursor</cursorShape>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: #1D1E20;</string>
+          <string notr="true">background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 #25262A, stop:1 #1A1B1F);
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.06);</string>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -175,7 +181,13 @@
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">color: #eeeeee;</string>
+             <string notr="true">background-color: transparent; 
+        color: #E8E9EA; 
+        border: none; 
+        font-family: &quot;Segoe UI&quot;, &quot;Roboto&quot;, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        padding: 6px 12px;</string>
             </property>
             <property name="inputMask">
              <string/>
@@ -272,10 +284,16 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
        </item>
        <item>
         <widget class="QFrame" name="createModFrame">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>100</height>
+          </size>
+         </property>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>0</height>
+           <height>100</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -292,19 +310,19 @@ background-color: #43C15F;
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="spacing">
-           <number>0</number>
+           <number>5</number>
           </property>
           <property name="leftMargin">
-           <number>0</number>
+           <number>5</number>
           </property>
           <property name="topMargin">
-           <number>0</number>
+           <number>5</number>
           </property>
           <property name="rightMargin">
-           <number>0</number>
+           <number>5</number>
           </property>
           <property name="bottomMargin">
-           <number>0</number>
+           <number>5</number>
           </property>
           <item>
            <widget class="QPushButton" name="createMod">
@@ -325,6 +343,50 @@ background-color: #43C15F;
             </property>
             <property name="text">
              <string>Create mod</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="createFromTemplate">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Roboto Medium</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="text">
+             <string>Create from Template</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="batchOperations">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Roboto Medium</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="text">
+             <string>Batch Operations</string>
             </property>
            </widget>
           </item>

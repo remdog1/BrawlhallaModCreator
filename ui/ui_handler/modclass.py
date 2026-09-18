@@ -31,3 +31,4 @@ class ModClass:
         self.currentVersion = currentVersion
         self.modFileExist = modFileExist
         self.modSourcesPath = modSourcesPath
+        self.features = []  # Initialize features as empty list
